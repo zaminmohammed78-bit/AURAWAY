@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "AURA WAY",
+    "slug": "aura-way",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "auraway",
+    "android": {
+      "package": "com.auraway.roadtrip",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.auraway.roadtrip",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "AURA WAY uses your location to show your position and nearby travel places when you choose to enable it."
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow AURA WAY to show your location on the trip map and find nearby places."
+        }
+      ]
+    ]
+  }
+}
