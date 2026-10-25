@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Alert, Linking, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet,
   Text, TextInput, TouchableOpacity, View, ActivityIndicator
@@ -42,7 +43,38 @@ export default function App() {
   const [expenses, setExpenses] = useState<{name: string; amount: number}[]>([]);
   const [saved, setSaved] = useState<SavedPlace[]>([]);
   const [notes, setNotes] = useState("");
+  const [storageReady, setStorageReady] = useState(false);
   const [placeType, setPlaceType] = useState<PlaceType>("Scenic viewpoints");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("aura-way-trip-v1");
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (typeof data.tripName === "string") setTripName(data.tripName);
+          if (typeof data.budget === "string") setBudget(data.budget);
+          if (typeof data.spent === "string") setSpent(data.spent);
+          if (Array.isArray(data.expenses)) setExpenses(data.expenses);
+          if (Array.isArray(data.saved)) setSaved(data.saved);
+          if (typeof data.notes === "string") setNotes(data.notes);
+        }
+      } catch {
+        // If local data is damaged, keep the app usable with a fresh trip.
+      } finally {
+        setStorageReady(true);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    AsyncStorage.setItem("aura-way-trip-v1", JSON.stringify({
+      tripName, budget, spent, expenses, saved, notes
+    })).catch(() => {
+      // Storage failures should not block map, navigation, or safety tools.
+    });
+  }, [storageReady, tripName, budget, spent, expenses, saved, notes]);
 
   const region: Region = useMemo(() => ({
     latitude: coords?.latitude ?? 11.2588,
