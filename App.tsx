@@ -45,7 +45,6 @@ export default function App() {
   const [saved, setSaved] = useState<SavedPlace[]>([]);
   const [notes, setNotes] = useState("");
   const [storageReady, setStorageReady] = useState(false);
-  const [placeType, setPlaceType] = useState<PlaceType>("Scenic viewpoints");
   const [evRange, setEvRange] = useState("350");
   const [tripDistance, setTripDistance] = useState("120");
 
@@ -121,10 +120,8 @@ export default function App() {
   }
 
   function openPlaceSearch(type: PlaceType) {
-    setPlaceType(type);
     const query = encodeURIComponent(placeSearch[type]);
-    const ll = coords ? `&query=${coords.latitude},${coords.longitude}` : "";
-    openUrl(`https://www.google.com/maps/search/?api=1&query=${query}${ll}`);
+    openUrl(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   function startNavigation() {
