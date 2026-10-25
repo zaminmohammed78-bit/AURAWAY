@@ -144,7 +144,7 @@ export default function App() {
         {tab === "Home" && <>
           <View style={styles.hero}>
             <View style={styles.heroPill}><View style={styles.liveDot} /><Text style={styles.pillText}>YOUR NEXT ADVENTURE STARTS HERE</Text></View>
-            <Text style={styles.heroTitle}>The road is{"\n"}calling<span> </span><Text style={{ color: mint }}>you.</Text></Text>
+            <Text style={styles.heroTitle}>The road is{"\n"}calling{" "} <Text style={{ color: mint }}>you.</Text></Text>
             <Text style={styles.bodyText}>Plan smarter, find hidden gems, and make every kilometre count.</Text>
             <View style={styles.inputRow}>
               <Ionicons name="search" size={20} color={muted} />
@@ -178,7 +178,8 @@ export default function App() {
               style={StyleSheet.absoluteFill}
               provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
               mapType={mapType}
-              region={region}
+              key={coords ? "located-map" : "default-map"}
+              initialRegion={region}
               showsUserLocation={permission}
               showsMyLocationButton={false}
               toolbarEnabled
