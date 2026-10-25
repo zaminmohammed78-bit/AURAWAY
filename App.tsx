@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import * as Location from "expo-location";
+import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -45,6 +46,8 @@ export default function App() {
   const [notes, setNotes] = useState("");
   const [storageReady, setStorageReady] = useState(false);
   const [placeType, setPlaceType] = useState<PlaceType>("Scenic viewpoints");
+  const [evRange, setEvRange] = useState("350");
+  const [tripDistance, setTripDistance] = useState("120");
 
   useEffect(() => {
     (async () => {
@@ -188,6 +191,7 @@ export default function App() {
               <View style={styles.mapPreviewBottom}><View><Text style={styles.mapTitle}>Explore the map</Text><Text style={styles.smallText}>Satellite view · Your location · Nearby finds</Text></View><Ionicons name="arrow-up-right" size={23} color={mint} /></View>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.voiceButton} onPress={() => Speech.speak(`Welcome to AURA WAY. Your trip is ${tripName}. Add a destination for driving directions, explore satellite maps, and remember to take breaks and keep your phone away while driving.`, { language: "en-IN", rate: 0.94 })}><Ionicons name="volume-high-outline" size={20} color={ink} /><Text style={styles.primaryButtonText}>Play voice trip briefing</Text></TouchableOpacity>
           <SectionTitle title="YOUR ROAD TRIP TOOLKIT" subtitle="Everything you need, all in one place" />
           <View style={styles.grid}>
             <FeatureCard icon="leaf" title="Scenic spots" subtitle="Views worth the detour" onPress={() => openPlaceSearch("Scenic viewpoints")} />
@@ -233,6 +237,21 @@ export default function App() {
           <SectionTitle title="DISCOVER THE WAY" subtitle="Useful stops and experiences along the route" />
           <View style={styles.searchHero}><Ionicons name="compass-outline" size={35} color={mint} /><Text style={styles.cardTitle}>Find your next stop</Text><Text style={styles.bodyText}>Search nearby places in Maps. Results and directions are supplied by your map app.</Text></View>
           {(["Scenic viewpoints", "Hotels", "Restaurants", "Fuel stations", "EV charging", "Rest stops"] as PlaceType[]).map((t, i) => <TouchableOpacity key={t} style={styles.listRow} onPress={() => openPlaceSearch(t)}><View style={styles.listIcon}><Ionicons name={(["camera", "bed", "restaurant", "speedometer", "flash", "cafe"] as const)[i]} size={22} color={mint} /></View><View style={{ flex: 1 }}><Text style={styles.cardTitle}>{t}</Text><Text style={styles.smallText}>Search places around your current area</Text></View><Ionicons name="chevron-forward" size={20} color={muted} /></TouchableOpacity>)}
+          <SectionTitle title="EV RANGE ESTIMATOR" subtitle="A simple estimate using the range you enter" />
+          <View style={styles.formCard}>
+            <Text style={styles.fieldLabel}>ESTIMATED RANGE WHEN FULL (KM)</Text>
+            <TextInput value={evRange} onChangeText={setEvRange} keyboardType="numeric" style={styles.textInput} placeholder="350" placeholderTextColor={muted} />
+            <Text style={styles.fieldLabel}>PLANNED DRIVE DISTANCE (KM)</Text>
+            <TextInput value={tripDistance} onChangeText={setTripDistance} keyboardType="numeric" style={styles.textInput} placeholder="120" placeholderTextColor={muted} />
+            <View style={styles.rangeResult}>
+              <Ionicons name="flash" size={22} color={mint} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{Number(evRange) - Number(tripDistance) >= 0 ? `${Math.max(0, Number(evRange) - Number(tripDistance))} km estimated range left` : "Charging stop likely needed"}</Text>
+                <Text style={styles.smallText}>Planning estimate only; weather, speed, terrain, load and battery condition change real range.</Text>
+              </View>
+            </View>
+            <PrimaryButton title="Find EV chargers" icon="flash" onPress={() => openPlaceSearch("EV charging")} />
+          </View>
           <SectionTitle title="YOUR SAVED STOPS" subtitle={saved.length ? `${saved.length} saved for this trip` : "Keep your must-visit places together"} />
           <View style={styles.formCard}><TextInput value={tripName} onChangeText={setTripName} style={styles.textInput} placeholder="Trip name" placeholderTextColor={muted} /><TextInput value={destination} onChangeText={setDestination} style={styles.textInput} placeholder="Place to save" placeholderTextColor={muted} /><PrimaryButton title="Save this place" icon="bookmark" onPress={() => destination.trim() ? addSaved(destination.trim(), tripName || "Trip") : Alert.alert("Add a place", "Enter a place name first.")} /></View>
           {saved.map(item => <View key={item.id} style={styles.savedRow}><Ionicons name="bookmark" size={19} color={mint} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>{item.name}</Text><Text style={styles.smallText}>{item.note}</Text></View><TouchableOpacity onPress={() => setSaved(old => old.filter(x => x.id !== item.id))}><Ionicons name="close-circle-outline" size={22} color={muted} /></TouchableOpacity></View>)}
@@ -305,6 +324,8 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: panel, borderColor: "#263A50", borderWidth: 1, borderRadius: 17, paddingLeft: 14, paddingRight: 6, marginTop: 22, minHeight: 57 },
   destinationInput: { color: "#F4F8FC", flex: 1, paddingHorizontal: 10, fontSize: 14, minWidth: 0 },
   goButton: { width: 43, height: 43, borderRadius: 13, backgroundColor: mint, alignItems: "center", justifyContent: "center" },
+  voiceButton: { backgroundColor: mint, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 14, padding: 14, marginTop: 14 },
+  rangeResult: { flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: "#112D31", borderRadius: 14, padding: 12, marginTop: 12 },
   mapPreview: { backgroundColor: panel, borderRadius: 20, borderWidth: 1, borderColor: "#25384C", marginTop: 17, overflow: "hidden" },
   mapPreviewGrid: { height: 123, backgroundColor: "#122A34", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 30 },
   mapPin: { width: 37, height: 37, borderRadius: 20, backgroundColor: mint, alignItems: "center", justifyContent: "center" },
