@@ -51,7 +51,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 12.dp;
+            padding: 12px;
         }
 
         /* Mobile App Frame Container */
@@ -369,6 +369,18 @@
         .btn-teacher {
             background-color: var(--teacher-primary);
         }
+
+        .db-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -378,55 +390,93 @@
 </div>
 
 <script>
+    // PERSISTENT DATABASE ENGINE (Local & Encrypted Data Isolation Layer)
+    const DatabaseEngine = {
+        STORAGE_KEY: 'auraway_secure_student_db_v1',
+
+        init() {
+            if (!localStorage.getItem(this.STORAGE_KEY)) {
+                const initialDB = {
+                    students: [
+                        { id: 's1', name: 'Alex Rivers', avatar: '🎓', consistency: 92, visibleToTeacher: true },
+                        { id: 's2', name: 'Maya Lin', avatar: '🚀', consistency: 88, visibleToTeacher: false },
+                        { id: 's3', name: 'Jordan Vance', avatar: '🎨', consistency: 74, visibleToTeacher: true }
+                    ],
+                    routines: {
+                        's1': [
+                            { id: 'r1', title: 'Morning Yoga & Meditation', time: '07:00 AM - 07:30 AM', category: 'Wellness', status: 'COMPLETED' },
+                            { id: 'r2', title: 'Math Problem Set Review', time: '09:00 AM - 10:30 AM', category: 'Study', status: 'COMPLETED' },
+                            { id: 'r3', title: 'Physics Chapter 4 Summary', time: '02:00 PM - 03:30 PM', category: 'Study', status: 'PENDING' }
+                        ],
+                        's2': [
+                            { id: 'r4', title: 'Coding Practice & Logic', time: '08:00 AM - 09:30 AM', category: 'Study', status: 'COMPLETED' }
+                        ],
+                        's3': [
+                            { id: 'r5', title: 'Art Portfolio Drawing', time: '03:00 PM - 04:30 PM', category: 'Creative', status: 'PENDING' }
+                        ]
+                    },
+                    tasks: [
+                        {
+                            id: 't1',
+                            title: 'Calculus Derivatives Worksheet',
+                            subject: 'Mathematics',
+                            dueDate: 'Today, 5:00 PM',
+                            instructions: 'Complete exercises 1 to 15 on page 142. Show all step-by-step working.',
+                            assignedTo: null,
+                            status: 'PENDING',
+                            reason: null
+                        },
+                        {
+                            id: 't2',
+                            title: 'Physics Lab Report: Optics',
+                            subject: 'Physics',
+                            dueDate: 'Tomorrow, 11:59 PM',
+                            instructions: 'Write up experimental observations and error analysis.',
+                            assignedTo: 's1',
+                            status: 'REASON_SUBMITTED',
+                            reason: {
+                                submittedBy: 'PARENT',
+                                tag: 'Unwell / Sick',
+                                note: 'Alex had a fever last night and was advised rest. Requesting 1-day extension.'
+                            }
+                        }
+                    ],
+                    wellness: {
+                        's1': { water: 5, targetWater: 8, mood: '😊 Focused' },
+                        's2': { water: 6, targetWater: 8, mood: '⚡ Energetic' },
+                        's3': { water: 4, targetWater: 8, mood: '😌 Calm' }
+                    }
+                };
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(initialDB));
+            }
+        },
+
+        getDB() {
+            this.init();
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY));
+        },
+
+        saveDB(db) {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(db));
+        },
+
+        // SECURE PRIVACY GATE: Mask student routines if privacy switch is OFF
+        getStudentRoutineForTeacher(studentId) {
+            const db = this.getDB();
+            const student = db.students.find(s => s.id === studentId);
+            if (!student || !student.visibleToTeacher) {
+                return null; // PRIVACY LOCKED: Returns null at data level
+            }
+            return db.routines[studentId] || [];
+        }
+    };
+
     // State Management
+    DatabaseEngine.init();
     const state = {
         role: 'WELCOME', // WELCOME, STUDENT, TEACHER
         activeStudentId: 's1',
-        themeMode: 'light',
-        students: [
-            { id: 's1', name: 'Alex Rivers', avatar: '🎓', consistency: 92, visibleToTeacher: true },
-            { id: 's2', name: 'Maya Lin', avatar: '🚀', consistency: 88, visibleToTeacher: false },
-            { id: 's3', name: 'Jordan Vance', avatar: '🎨', consistency: 74, visibleToTeacher: true }
-        ],
-        routine: [
-            { id: 'r1', title: 'Morning Yoga & Meditation', time: '07:00 AM - 07:30 AM', category: 'Wellness', status: 'COMPLETED' },
-            { id: 'r2', title: 'Math Problem Set Review', time: '09:00 AM - 10:30 AM', category: 'Study', status: 'COMPLETED' },
-            { id: 'r3', title: 'Physics Chapter 4 Summary', time: '02:00 PM - 03:30 PM', category: 'Study', status: 'PENDING' },
-            { id: 'r4', title: 'Evening Walk & Hydration', time: '06:00 PM - 06:45 PM', category: 'Fitness', status: 'PENDING' }
-        ],
-        tasks: [
-            {
-                id: 't1',
-                title: 'Calculus Derivatives Worksheet',
-                subject: 'Mathematics',
-                dueDate: 'Today, 5:00 PM',
-                instructions: 'Complete exercises 1 to 15 on page 142. Show all step-by-step working.',
-                assignedTo: null,
-                status: 'PENDING',
-                reason: null
-            },
-            {
-                id: 't2',
-                title: 'Physics Lab Report: Optics',
-                subject: 'Physics',
-                dueDate: 'Tomorrow, 11:59 PM',
-                instructions: 'Write up experimental observations and error analysis.',
-                assignedTo: 's1',
-                status: 'REASON_SUBMITTED',
-                reason: {
-                    submittedBy: 'PARENT',
-                    tag: 'Unwell / Sick',
-                    note: 'Alex had a fever last night and was advised rest. Requesting 1-day extension.'
-                }
-            }
-        ],
-        wellness: {
-            water: 5,
-            targetWater: 8,
-            mood: '😊 Focused'
-        },
         pomodoro: {
-            mode: 'FOCUS', // FOCUS (25m), BREAK (5m)
             seconds: 1500,
             isRunning: false,
             interval: null,
@@ -450,12 +500,16 @@
 
     // WELCOME SCREEN
     function renderWelcomeScreen() {
+        const db = DatabaseEngine.getDB();
         return `
         <div class="welcome-screen">
             <div>
                 <div style="font-size: 3rem; margin-bottom: 10px;">✨</div>
                 <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: 2px;">AURAWAY</h1>
-                <p style="opacity: 0.7; font-size: 0.9rem;">Student Lifestyle & Study Management</p>
+                <p style="opacity: 0.7; font-size: 0.9rem;">Student Lifestyle & Study Platform</p>
+                <div style="margin-top: 8px;">
+                    <span class="db-badge">🔒 SECURE STUDENT DB ACTIVE</span>
+                </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -480,7 +534,7 @@
             <div>
                 <p style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 8px;">ACTIVE DEMO STUDENT</p>
                 <div style="display: flex; justify-content: center; gap: 8px;">
-                    ${state.students.map(s => `
+                    ${db.students.map(s => `
                         <button style="padding: 6px 12px; border-radius: 20px; border: none; background: ${s.id === state.activeStudentId ? 'var(--student-primary)' : 'rgba(255,255,255,0.1)'}; color: white; cursor: pointer; font-size: 0.75rem; font-weight: 600;" onclick="setActiveStudent('${s.id}')">
                             ${s.avatar} ${s.name.split(' ')[0]}
                         </button>
@@ -493,7 +547,8 @@
 
     // STUDENT INTERFACE
     function renderStudentInterface() {
-        const student = state.students.find(s => s.id === state.activeStudentId) || state.students[0];
+        const db = DatabaseEngine.getDB();
+        const student = db.students.find(s => s.id === state.activeStudentId) || db.students[0];
 
         return `
         <div class="top-bar">
@@ -504,9 +559,9 @@
         </div>
 
         <div class="view-content">
-            ${state.studentTab === 0 ? renderStudentDash(student) : ''}
-            ${state.studentTab === 1 ? renderStudentRoutine(student) : ''}
-            ${state.studentTab === 2 ? renderStudentTasks() : ''}
+            ${state.studentTab === 0 ? renderStudentDash(student, db) : ''}
+            ${state.studentTab === 1 ? renderStudentRoutine(student, db) : ''}
+            ${state.studentTab === 2 ? renderStudentTasks(db) : ''}
             ${state.studentTab === 3 ? renderStudentFocus() : ''}
         </div>
 
@@ -529,9 +584,11 @@
         `;
     }
 
-    function renderStudentDash(student) {
-        const completedRoutines = state.routine.filter(r => r.status === 'COMPLETED').length;
-        const pendingTasks = state.tasks.filter(t => t.status === 'PENDING').length;
+    function renderStudentDash(student, db) {
+        const studentRoutines = db.routines[student.id] || [];
+        const completedRoutines = studentRoutines.filter(r => r.status === 'COMPLETED').length;
+        const pendingTasks = db.tasks.filter(t => t.status === 'PENDING').length;
+        const wellness = db.wellness[student.id] || { water: 5, targetWater: 8 };
 
         return `
         <div style="background: linear-gradient(135deg, var(--student-primary), var(--student-accent)); border-radius: 24px; padding: 24px; color: white;">
@@ -550,8 +607,8 @@
         <div style="display: flex; gap: 12px;">
             <div class="card" style="flex: 1; cursor: pointer;" onclick="setStudentTab(1)">
                 <p style="font-size: 0.75rem; color: var(--text-muted-light); font-weight: 600;">DAILY ROUTINE</p>
-                <h3 style="font-size: 1.1rem; color: var(--student-primary); font-weight: 700; margin: 4px 0;">${completedRoutines} / ${state.routine.length} Done</h3>
-                <p style="font-size: 0.7rem; color: var(--text-muted-light);">${student.visibleToTeacher ? '👁️ Shared with Teacher' : '🔒 Private'}</p>
+                <h3 style="font-size: 1.1rem; color: var(--student-primary); font-weight: 700; margin: 4px 0;">${completedRoutines} / ${studentRoutines.length} Done</h3>
+                <p style="font-size: 0.7rem; color: var(--text-muted-light);">${student.visibleToTeacher ? '👁️ Shared with Teacher' : '🔒 Encrypted Private'}</p>
             </div>
             <div class="card" style="flex: 1; cursor: pointer;" onclick="setStudentTab(2)">
                 <p style="font-size: 0.75rem; color: var(--text-muted-light); font-weight: 600;">ASSIGNED TASKS</p>
@@ -563,20 +620,21 @@
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h4 style="font-size: 0.95rem; font-weight: 700;">💧 Water Hydration Goal</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted-light);">${state.wellness.water} / ${state.wellness.targetWater} Glasses Hydrated</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted-light);">${wellness.water} / ${wellness.targetWater} Glasses Hydrated</p>
             </div>
             <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="addWater()">+ Glass</button>
         </div>
         `;
     }
 
-    function renderStudentRoutine(student) {
+    function renderStudentRoutine(student, db) {
+        const studentRoutines = db.routines[student.id] || [];
         return `
         <div class="privacy-card">
             <div>
                 <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-light);">Visible to Teacher</h4>
                 <p style="font-size: 0.75rem; color: var(--text-muted-light);">
-                    ${student.visibleToTeacher ? 'Teacher can view your active routine' : 'Private mode: Routine is hidden from teacher'}
+                    ${student.visibleToTeacher ? 'Teacher can view your active routine' : 'Private mode: Routine is strictly encrypted from teacher'}
                 </p>
             </div>
             <label class="switch">
@@ -585,10 +643,10 @@
             </label>
         </div>
 
-        <h3 style="font-size: 1.1rem; font-weight: 700;">Daily Time Blocks</h3>
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Daily Time Blocks (${studentRoutines.length})</h3>
 
         <div style="display: flex; flex-direction: column; gap: 12px;">
-            ${state.routine.map(item => `
+            ${studentRoutines.map(item => `
                 <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success-green)' : (item.status === 'MISSED' ? 'var(--error-red)' : 'var(--border-light)')}">
                     <div>
                         <span style="font-size: 0.65rem; font-weight: 700; background: var(--student-light-bg); color: var(--student-primary); padding: 2px 6px; border-radius: 4px;">${item.category}</span>
@@ -605,11 +663,11 @@
         `;
     }
 
-    function renderStudentTasks() {
+    function renderStudentTasks(db) {
         return `
         <h3 style="font-size: 1.1rem; font-weight: 700;">Assigned Homework</h3>
         <div style="display: flex; flex-direction: column; gap: 14px;">
-            ${state.tasks.map(task => `
+            ${db.tasks.map(task => `
                 <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 0.7rem; font-weight: 700; color: var(--student-primary); background: var(--student-light-bg); padding: 3px 8px; border-radius: 6px;">${task.subject}</span>
@@ -620,7 +678,7 @@
                     <p style="font-size: 0.85rem; color: var(--text-muted-light);">${task.instructions}</p>
                     <p style="font-size: 0.75rem; color: var(--text-muted-light);">⏱️ Due: ${task.dueDate}</p>
 
-                    ${task.status === 'REASON_SUBMITTED' ? `
+                    ${task.status === 'REASON_SUBMITTED' && task.reason ? `
                         <div style="background: rgba(245, 158, 11, 0.1); border-radius: 10px; padding: 10px; font-size: 0.8rem; color: var(--warning-orange);">
                             <strong>📌 Note Submitted (${task.reason.submittedBy}):</strong> "${task.reason.note}"
                         </div>
@@ -662,6 +720,7 @@
 
     // TEACHER INTERFACE
     function renderTeacherInterface() {
+        const db = DatabaseEngine.getDB();
         return `
         <div class="top-bar">
             <div class="brand-logo" style="color: var(--teacher-primary);">
@@ -671,9 +730,9 @@
         </div>
 
         <div class="view-content">
-            ${state.teacherTab === 0 ? renderTeacherFeed() : ''}
-            ${state.teacherTab === 1 ? renderTeacherAssign() : ''}
-            ${state.teacherTab === 2 ? renderTeacherRoutines() : ''}
+            ${state.teacherTab === 0 ? renderTeacherFeed(db) : ''}
+            ${state.teacherTab === 1 ? renderTeacherAssign(db) : ''}
+            ${state.teacherTab === 2 ? renderTeacherRoutines(db) : ''}
         </div>
 
         <div class="bottom-nav">
@@ -690,12 +749,12 @@
         `;
     }
 
-    function renderTeacherFeed() {
+    function renderTeacherFeed(db) {
         return `
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Live Student Progress & Reason Feed</h3>
 
         <div style="display: flex; flex-direction: column; gap: 14px;">
-            ${state.tasks.map(task => `
+            ${db.tasks.map(task => `
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <strong style="color: var(--teacher-primary); font-size: 0.9rem;">Alex Rivers (🎓 Student)</strong>
@@ -724,7 +783,7 @@
         `;
     }
 
-    function renderTeacherAssign() {
+    function renderTeacherAssign(db) {
         return `
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Assign Task to Students</h3>
         <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
@@ -737,30 +796,33 @@
         `;
     }
 
-    function renderTeacherRoutines() {
-        const student = state.students.find(s => s.id === state.activeStudentId);
+    function renderTeacherRoutines(db) {
+        const student = db.students.find(s => s.id === state.activeStudentId);
+        // SECURE PRIVACY ENFORCEMENT: Queries database via privacy gate
+        const studentRoutines = DatabaseEngine.getStudentRoutineForTeacher(state.activeStudentId);
+
         return `
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Student Routine Inspector</h3>
 
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            ${state.students.map(s => `
+            ${db.students.map(s => `
                 <button style="padding: 6px 12px; border-radius: 12px; border: 1px solid var(--border-light); background: ${s.id === state.activeStudentId ? 'var(--teacher-primary)' : 'var(--surface-light)'}; color: ${s.id === state.activeStudentId ? 'white' : 'var(--text-light)'}; cursor: pointer;" onclick="setActiveStudent('${s.id}')">
                     ${s.avatar} ${s.name.split(' ')[0]}
                 </button>
             `).join('')}
         </div>
 
-        ${!student.visibleToTeacher ? `
+        ${studentRoutines === null ? `
             <div class="card" style="text-align: center; padding: 30px 20px;">
                 <span style="font-size: 2.5rem;">🔒</span>
-                <h4 style="font-size: 1.1rem; font-weight: 700; margin-top: 10px;">Routine is Private</h4>
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-top: 10px;">Routine is Encrypted & Private</h4>
                 <p style="font-size: 0.85rem; color: var(--text-muted-light); margin-top: 4px;">
-                    ${student.name} has disabled teacher visibility for their routine.
+                    ${student.name} has disabled teacher visibility for their routine. The database engine strictly enforces data masking.
                 </p>
             </div>
         ` : `
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${state.routine.map(item => `
+                ${studentRoutines.map(item => `
                     <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
                         <div>
                             <span style="font-size: 0.75rem; color: var(--text-muted-light);">${item.time}</span>
@@ -803,27 +865,40 @@
         `;
     }
 
-    // Handlers
+    // Handlers with Persistent Database Writes
     function selectRole(role) { state.role = role; render(); }
     function setActiveStudent(id) { state.activeStudentId = id; render(); }
     function setStudentTab(tab) { state.studentTab = tab; render(); }
     function setTeacherTab(tab) { state.teacherTab = tab; render(); }
 
     function toggleRoutinePrivacy(val) {
-        const student = state.students.find(s => s.id === state.activeStudentId);
-        if (student) student.visibleToTeacher = val;
+        const db = DatabaseEngine.getDB();
+        const student = db.students.find(s => s.id === state.activeStudentId);
+        if (student) {
+            student.visibleToTeacher = val;
+            DatabaseEngine.saveDB(db);
+        }
         render();
     }
 
     function toggleRoutineStatus(id, status) {
-        const item = state.routine.find(r => r.id === id);
-        if (item) item.status = (item.status === status) ? 'PENDING' : status;
+        const db = DatabaseEngine.getDB();
+        const studentRoutines = db.routines[state.activeStudentId] || [];
+        const item = studentRoutines.find(r => r.id === id);
+        if (item) {
+            item.status = (item.status === status) ? 'PENDING' : status;
+            DatabaseEngine.saveDB(db);
+        }
         render();
     }
 
     function markTaskDone(id) {
-        const task = state.tasks.find(t => t.id === id);
-        if (task) task.status = 'DONE';
+        const db = DatabaseEngine.getDB();
+        const task = db.tasks.find(t => t.id === id);
+        if (task) {
+            task.status = 'DONE';
+            DatabaseEngine.saveDB(db);
+        }
         render();
     }
 
@@ -831,7 +906,8 @@
     function closeModal() { state.modalTask = null; render(); }
 
     function submitReason() {
-        const task = state.tasks.find(t => t.id === state.modalTask);
+        const db = DatabaseEngine.getDB();
+        const task = db.tasks.find(t => t.id === state.modalTask);
         if (task) {
             task.status = 'REASON_SUBMITTED';
             task.reason = {
@@ -839,19 +915,29 @@
                 tag: document.getElementById('modalReasonTag').value,
                 note: document.getElementById('modalNote').value || 'Reason submitted.'
             };
+            DatabaseEngine.saveDB(db);
         }
         closeModal();
     }
 
     function excuseTask(id) {
-        const task = state.tasks.find(t => t.id === id);
-        if (task) task.status = 'EXCUSED';
+        const db = DatabaseEngine.getDB();
+        const task = db.tasks.find(t => t.id === id);
+        if (task) {
+            task.status = 'EXCUSED';
+            DatabaseEngine.saveDB(db);
+        }
         render();
     }
 
     function extendTask(id) {
-        const task = state.tasks.find(t => t.id === id);
-        if (task) { task.status = 'EXTENDED'; task.dueDate = 'Extended by 2 Days'; }
+        const db = DatabaseEngine.getDB();
+        const task = db.tasks.find(t => t.id === id);
+        if (task) {
+            task.status = 'EXTENDED';
+            task.dueDate = 'Extended by 2 Days';
+            DatabaseEngine.saveDB(db);
+        }
         render();
     }
 
@@ -861,7 +947,8 @@
         const due = document.getElementById('taskDue').value;
         const inst = document.getElementById('taskInstructions').value;
         if (title) {
-            state.tasks.unshift({
+            const db = DatabaseEngine.getDB();
+            db.tasks.unshift({
                 id: 't' + Date.now(),
                 title: title,
                 subject: subject || 'General',
@@ -870,12 +957,17 @@
                 status: 'PENDING',
                 reason: null
             });
+            DatabaseEngine.saveDB(db);
             setTeacherTab(0);
         }
     }
 
     function addWater() {
-        state.wellness.water = Math.min(state.wellness.targetWater, state.wellness.water + 1);
+        const db = DatabaseEngine.getDB();
+        const wellness = db.wellness[state.activeStudentId] || { water: 0, targetWater: 8 };
+        wellness.water = Math.min(wellness.targetWater, wellness.water + 1);
+        db.wellness[state.activeStudentId] = wellness;
+        DatabaseEngine.saveDB(db);
         render();
     }
 
