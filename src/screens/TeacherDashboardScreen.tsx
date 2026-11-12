@@ -181,7 +181,7 @@ export const TeacherDashboardScreen: React.FC<Props> = ({ userProfile, onSignOut
             {tasks.map((task) => (
               <View key={task.id} style={styles.card}>
                 <View style={styles.rowBetween}>
-                  <Text style={styles.studentNameHeader}>Alex Rivers (🎓 Student)</Text>
+                  <Text style={styles.studentNameHeader}>{students.find((student) => student.id === task.assigned_to_student_id)?.username || 'Student'}</Text>
                   <Text style={[styles.statusBadge, task.status === 'REASON_SUBMITTED' && styles.statusBadgeWarning]}>
                     {task.status}
                   </Text>
@@ -193,7 +193,7 @@ export const TeacherDashboardScreen: React.FC<Props> = ({ userProfile, onSignOut
                 {task.status === 'REASON_SUBMITTED' && (
                   <View style={styles.reasonBox}>
                     <Text style={styles.reasonTitle}>📌 Non-Completion Note Submitted</Text>
-                    <Text style={styles.reasonText}>"Alex had a fever last night and was advised to rest."</Text>
+                    <Text style={styles.reasonText}>{task.reason_submission?.note || 'A student submitted a note for this task.'}</Text>
                   </View>
                 )}
 
