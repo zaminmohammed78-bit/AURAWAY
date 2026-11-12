@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Local environment overrides
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Android build output
+android/.gradle/
+android/build/
+android/app/build/
+
+# iOS build output
+ios/build/
+ios/Pods/
+
+# Debug and temporary files
+*.log
+.DS_Store
