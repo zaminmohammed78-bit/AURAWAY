@@ -311,6 +311,11 @@
 </div>
 
 <script>
+    // Supabase Live Instance Credentials
+    const SUPABASE_URL = 'https://xypzqwgrobgorqdsivfu.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Q8zMnf91Dmc5NqiyecVNgA_DmApMwKN';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
     const TEACHER_SPECIAL_CODE = '0987654321';
 
     // State
@@ -352,6 +357,9 @@
                 <div style="font-size: 2.5rem;">✨</div>
                 <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: 2px; margin-top: 4px;">AURAWAY</h1>
                 <p style="font-size: 0.8rem; color: var(--text-muted-light);">Student Lifestyle & Study Platform</p>
+                <div style="margin-top: 6px;">
+                    <span style="font-size: 0.65rem; background: rgba(0,168,150,0.15); color: #00A896; padding: 2px 8px; border-radius: 6px; font-weight: 700;">🟢 SUPABASE CONNECTED</span>
+                </div>
             </div>
 
             <div class="role-tabs">
