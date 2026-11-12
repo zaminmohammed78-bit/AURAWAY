@@ -4,30 +4,13 @@
     "slug": "auraway",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F172A"
-      },
       "package": "com.auraway.app"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "supabaseUrl": "https://YOUR_SUPABASE_PROJECT_REF.supabase.co",
-      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY"
     }
   }
 }
