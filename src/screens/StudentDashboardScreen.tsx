@@ -194,7 +194,7 @@ export const StudentDashboardScreen: React.FC<Props> = ({ userProfile, onSignOut
             {/* Banner */}
             <View style={styles.greetingCard}>
               <Text style={styles.greetingTitle}>Hello, {userProfile.username} 🎓</Text>
-              <Text style={styles.greetingSub}>Wednesday, Feb 26</Text>
+              <Text style={styles.greetingSub}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</Text>
               <View style={styles.streakBadge}>
                 <Text style={styles.streakNumber}>{userProfile.consistency_rate || 92}%</Text>
                 <Text style={styles.streakLabel}>Streak</Text>
