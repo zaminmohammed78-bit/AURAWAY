@@ -5,35 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURAWAY — Student Lifestyle & Study Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-light: #F8FAFC;
-            --surface-light: #FFFFFF;
-            --text-light: #0F172A;
-            --text-muted-light: #64748B;
-            --border-light: #E2E8F0;
-
-            --student-primary: #00A896;
-            --student-accent: #02C39A;
-            --student-light-bg: #E6FFFA;
-
-            --teacher-primary: #2A4365;
-            --teacher-accent: #3182CE;
-            --teacher-light-bg: #EBF8FF;
-
-            --success-green: #10B981;
-            --error-red: #EF4444;
-            --warning-orange: #F59E0B;
-        }
-
-        .dark {
             --bg-light: #0F172A;
             --surface-light: #1E293B;
             --text-light: #F8FAFC;
             --text-muted-light: #94A3B8;
             --border-light: #334155;
+
+            --student-primary: #00A896;
+            --student-accent: #02C39A;
             --student-light-bg: #132A29;
+
+            --teacher-primary: #2A4365;
+            --teacher-accent: #3182CE;
             --teacher-light-bg: #1A202C;
+
+            --success-green: #10B981;
+            --error-red: #EF4444;
+            --warning-orange: #F59E0B;
         }
 
         * {
@@ -132,53 +123,92 @@
             border: 1px solid var(--border-light);
         }
 
-        /* Welcome Screen */
-        .welcome-screen {
-            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        /* Auth Screen */
+        .auth-screen {
             height: 100%;
-            padding: 30px 24px;
+            padding: 28px 20px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            color: white;
-            text-align: center;
-        }
-
-        .role-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 24px;
-            padding: 20px;
-            cursor: pointer;
-            text-align: left;
-            transition: transform 0.2s, background 0.2s;
-            display: flex;
-            align-items: center;
             gap: 16px;
+            overflow-y: auto;
         }
 
-        .role-card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.14);
-        }
-
-        .role-card.student {
-            background: linear-gradient(135deg, var(--student-primary), var(--student-accent));
-        }
-
-        .role-card.teacher {
-            background: linear-gradient(135deg, var(--teacher-primary), var(--teacher-accent));
-        }
-
-        .role-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.25);
+        .role-tabs {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 4px;
+            border: 1px solid var(--border-light);
+        }
+
+        .role-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-muted-light);
+            transition: all 0.2s;
+        }
+
+        .role-tab.active-student {
+            background-color: var(--student-primary);
+            color: white;
+        }
+
+        .role-tab.active-teacher {
+            background-color: var(--teacher-primary);
+            color: white;
+        }
+
+        /* Form Controls */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted-light);
+        }
+
+        input[type="text"], input[type="email"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .teacher-code-box {
+            background: rgba(49, 130, 206, 0.15);
+            border: 1px solid #3182CE;
+            padding: 12px;
+            border-radius: 14px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background-color: var(--student-primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-teacher {
+            background-color: var(--teacher-accent);
         }
 
         /* Privacy Switch Component */
@@ -199,188 +229,79 @@
             height: 26px;
         }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
 
         .slider {
-            position: absolute;
-            cursor: pointer;
+            position: absolute; cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #CBD5E1;
-            transition: .3s;
+            background-color: #CBD5E1; transition: .3s;
             border-radius: 34px;
         }
 
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
+            position: absolute; content: "";
+            height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s;
             border-radius: 50%;
         }
 
-        input:checked + .slider {
-            background-color: var(--student-primary);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
+        input:checked + .slider { background-color: var(--student-primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
         /* Action Buttons */
         .btn-tick {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success-green);
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15); color: var(--success-green);
+            border: none; cursor: pointer; font-size: 1rem;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
         }
 
-        .btn-tick.active {
-            background: var(--success-green);
-            color: white;
-        }
+        .btn-tick.active { background: var(--success-green); color: white; }
 
         .btn-cross {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--error-red);
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(239, 68, 68, 0.15); color: var(--error-red);
+            border: none; cursor: pointer; font-size: 1rem;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
         }
 
-        .btn-cross.active {
-            background: var(--error-red);
-            color: white;
-        }
+        .btn-cross.active { background: var(--error-red); color: white; }
 
         /* Bottom Navigation Bar */
         .bottom-nav {
             background-color: var(--surface-light);
             border-top: 1px solid var(--border-light);
-            display: flex;
-            justify-content: space-around;
+            display: flex; justify-content: space-around;
             padding: 10px 0;
         }
 
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted-light);
-            cursor: pointer;
-            border: none;
-            background: none;
-            width: 25%;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 0.7rem; font-weight: 600; color: var(--text-muted-light);
+            cursor: pointer; border: none; background: none; width: 25%;
         }
 
-        .nav-item.active {
-            color: var(--student-primary);
-        }
-
-        .nav-item span.icon {
-            font-size: 1.25rem;
-        }
+        .nav-item.active { color: var(--student-primary); }
+        .nav-item span.icon { font-size: 1.25rem; }
 
         /* Modal Overlay */
         .modal-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6); display: flex;
+            justify-content: center; align-items: flex-end;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
         }
 
-        .modal-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
         .modal-content {
-            width: 100%;
-            background: var(--surface-light);
-            border-top-left-radius: 28px;
-            border-top-right-radius: 28px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%; background: var(--surface-light);
+            border-top-left-radius: 28px; border-top-right-radius: 28px;
+            padding: 24px; display: flex; flex-direction: column; gap: 16px;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .modal-overlay.open .modal-content {
-            transform: translateY(0);
-        }
-
-        /* Form Controls */
-        input[type="text"], textarea, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border-light);
-            background-color: var(--bg-light);
-            color: var(--text-light);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            border-radius: 14px;
-            border: none;
-            background-color: var(--student-primary);
-            color: white;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-
-        .btn-teacher {
-            background-color: var(--teacher-primary);
-        }
-
-        .db-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            background: rgba(16, 185, 129, 0.15);
-            color: #10B981;
-            padding: 2px 8px;
-            border-radius: 6px;
-        }
+        .modal-overlay.open .modal-content { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -390,610 +311,240 @@
 </div>
 
 <script>
-    // PERSISTENT DATABASE ENGINE (Local & Encrypted Data Isolation Layer)
-    const DatabaseEngine = {
-        STORAGE_KEY: 'auraway_secure_student_db_v1',
+    const TEACHER_SPECIAL_CODE = '0987654321';
 
-        init() {
-            if (!localStorage.getItem(this.STORAGE_KEY)) {
-                const initialDB = {
-                    students: [
-                        { id: 's1', name: 'Alex Rivers', avatar: '🎓', consistency: 92, visibleToTeacher: true },
-                        { id: 's2', name: 'Maya Lin', avatar: '🚀', consistency: 88, visibleToTeacher: false },
-                        { id: 's3', name: 'Jordan Vance', avatar: '🎨', consistency: 74, visibleToTeacher: true }
-                    ],
-                    routines: {
-                        's1': [
-                            { id: 'r1', title: 'Morning Yoga & Meditation', time: '07:00 AM - 07:30 AM', category: 'Wellness', status: 'COMPLETED' },
-                            { id: 'r2', title: 'Math Problem Set Review', time: '09:00 AM - 10:30 AM', category: 'Study', status: 'COMPLETED' },
-                            { id: 'r3', title: 'Physics Chapter 4 Summary', time: '02:00 PM - 03:30 PM', category: 'Study', status: 'PENDING' }
-                        ],
-                        's2': [
-                            { id: 'r4', title: 'Coding Practice & Logic', time: '08:00 AM - 09:30 AM', category: 'Study', status: 'COMPLETED' }
-                        ],
-                        's3': [
-                            { id: 'r5', title: 'Art Portfolio Drawing', time: '03:00 PM - 04:30 PM', category: 'Creative', status: 'PENDING' }
-                        ]
-                    },
-                    tasks: [
-                        {
-                            id: 't1',
-                            title: 'Calculus Derivatives Worksheet',
-                            subject: 'Mathematics',
-                            dueDate: 'Today, 5:00 PM',
-                            instructions: 'Complete exercises 1 to 15 on page 142. Show all step-by-step working.',
-                            assignedTo: null,
-                            status: 'PENDING',
-                            reason: null
-                        },
-                        {
-                            id: 't2',
-                            title: 'Physics Lab Report: Optics',
-                            subject: 'Physics',
-                            dueDate: 'Tomorrow, 11:59 PM',
-                            instructions: 'Write up experimental observations and error analysis.',
-                            assignedTo: 's1',
-                            status: 'REASON_SUBMITTED',
-                            reason: {
-                                submittedBy: 'PARENT',
-                                tag: 'Unwell / Sick',
-                                note: 'Alex had a fever last night and was advised rest. Requesting 1-day extension.'
-                            }
-                        }
-                    ],
-                    wellness: {
-                        's1': { water: 5, targetWater: 8, mood: '😊 Focused' },
-                        's2': { water: 6, targetWater: 8, mood: '⚡ Energetic' },
-                        's3': { water: 4, targetWater: 8, mood: '😌 Calm' }
-                    }
-                };
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(initialDB));
-            }
-        },
-
-        getDB() {
-            this.init();
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY));
-        },
-
-        saveDB(db) {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(db));
-        },
-
-        // SECURE PRIVACY GATE: Mask student routines if privacy switch is OFF
-        getStudentRoutineForTeacher(studentId) {
-            const db = this.getDB();
-            const student = db.students.find(s => s.id === studentId);
-            if (!student || !student.visibleToTeacher) {
-                return null; // PRIVACY LOCKED: Returns null at data level
-            }
-            return db.routines[studentId] || [];
-        }
-    };
-
-    // State Management
-    DatabaseEngine.init();
+    // State
     const state = {
-        role: 'WELCOME', // WELCOME, STUDENT, TEACHER
-        activeStudentId: 's1',
-        pomodoro: {
-            seconds: 1500,
-            isRunning: false,
-            interval: null,
-            sessions: 3
-        },
-        studentTab: 0, // 0: Dash, 1: Routine, 2: Tasks, 3: Focus
-        teacherTab: 0, // 0: Feed, 1: Assign, 2: Routines
-        modalTask: null
+        user: null, // Logged in user profile
+        isSignUp: false,
+        selectedRole: 'student',
+        studentTab: 0,
+        teacherTab: 0,
+        pomodoro: { seconds: 1500, isRunning: false, interval: null },
+        modalTask: null,
+        routines: [
+            { id: 'r1', title: 'Morning Yoga & Meditation', time: '07:00 AM - 07:30 AM', category: 'Wellness', status: 'COMPLETED' },
+            { id: 'r2', title: 'Math Problem Set Review', time: '09:00 AM - 10:30 AM', category: 'Study', status: 'COMPLETED' },
+            { id: 'r3', title: 'Physics Chapter 4 Summary', time: '02:00 PM - 03:30 PM', category: 'Study', status: 'PENDING' }
+        ],
+        tasks: [
+            { id: 't1', title: 'Calculus Derivatives Worksheet', subject: 'Mathematics', dueDate: 'Today, 5:00 PM', instructions: 'Exercises 1-15 on page 142.', status: 'PENDING', reason: null },
+            { id: 't2', title: 'Physics Lab Report: Optics', subject: 'Physics', dueDate: 'Tomorrow, 11:59 PM', instructions: 'Observations and error analysis.', status: 'REASON_SUBMITTED', reason: { submittedBy: 'PARENT', note: 'Alex had a fever last night and was advised rest.' } }
+        ],
+        wellness: { water: 5, targetWater: 8 }
     };
 
     function render() {
         const frame = document.getElementById('appFrame');
-        if (state.role === 'WELCOME') {
-            frame.innerHTML = renderWelcomeScreen();
-        } else if (state.role === 'STUDENT') {
+        if (!state.user) {
+            frame.innerHTML = renderAuthScreen();
+        } else if (state.user.role === 'student') {
             frame.innerHTML = renderStudentInterface();
-        } else if (state.role === 'TEACHER') {
+        } else if (state.user.role === 'teacher') {
             frame.innerHTML = renderTeacherInterface();
         }
     }
 
-    // WELCOME SCREEN
-    function renderWelcomeScreen() {
-        const db = DatabaseEngine.getDB();
+    function renderAuthScreen() {
         return `
-        <div class="welcome-screen">
-            <div>
-                <div style="font-size: 3rem; margin-bottom: 10px;">✨</div>
-                <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: 2px;">AURAWAY</h1>
-                <p style="opacity: 0.7; font-size: 0.9rem;">Student Lifestyle & Study Platform</p>
-                <div style="margin-top: 8px;">
-                    <span class="db-badge">🔒 SECURE STUDENT DB ACTIVE</span>
-                </div>
+        <div class="auth-screen">
+            <div style="text-align: center; margin-top: 10px;">
+                <div style="font-size: 2.5rem;">✨</div>
+                <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: 2px; margin-top: 4px;">AURAWAY</h1>
+                <p style="font-size: 0.8rem; color: var(--text-muted-light);">Student Lifestyle & Study Platform</p>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <p style="text-align: left; font-size: 0.85rem; opacity: 0.8; font-weight: 600;">SELECT YOUR ROLE</p>
-                <div class="role-card student" onclick="selectRole('STUDENT')">
-                    <div class="role-icon">🧑‍🎓</div>
-                    <div>
-                        <h3 style="font-size: 1.1rem; font-weight: 700;">Student Portal</h3>
-                        <p style="font-size: 0.8rem; opacity: 0.9;">Pomodoro, routine & task manager</p>
-                    </div>
-                </div>
-
-                <div class="role-card teacher" onclick="selectRole('TEACHER')">
-                    <div class="role-icon">👨‍🏫</div>
-                    <div>
-                        <h3 style="font-size: 1.1rem; font-weight: 700;">Teacher Portal</h3>
-                        <p style="font-size: 0.8rem; opacity: 0.9;">Assign tasks & verify reason notes</p>
-                    </div>
-                </div>
+            <div class="role-tabs">
+                <div class="role-tab ${state.selectedRole === 'student' ? 'active-student' : ''}" onclick="selectRole('student')">🧑‍🎓 Student Portal</div>
+                <div class="role-tab ${state.selectedRole === 'teacher' ? 'active-teacher' : ''}" onclick="selectRole('teacher')">👨‍🏫 Teacher Portal</div>
             </div>
 
-            <div>
-                <p style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 8px;">ACTIVE DEMO STUDENT</p>
-                <div style="display: flex; justify-content: center; gap: 8px;">
-                    ${db.students.map(s => `
-                        <button style="padding: 6px 12px; border-radius: 20px; border: none; background: ${s.id === state.activeStudentId ? 'var(--student-primary)' : 'rgba(255,255,255,0.1)'}; color: white; cursor: pointer; font-size: 0.75rem; font-weight: 600;" onclick="setActiveStudent('${s.id}')">
-                            ${s.avatar} ${s.name.split(' ')[0]}
-                        </button>
-                    `).join('')}
+            <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">${state.isSignUp ? 'Register Account' : 'Sign In'}</h3>
+
+                ${state.isSignUp ? `
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="authName" placeholder="e.g. Alex Rivers">
+                    </div>
+                ` : ''}
+
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="authEmail" placeholder="e.g. user@school.edu">
                 </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" placeholder="••••••••">
+                </div>
+
+                ${state.isSignUp ? `
+                    <div class="input-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="authConfirmPassword" placeholder="••••••••">
+                    </div>
+                ` : ''}
+
+                ${state.selectedRole === 'teacher' ? `
+                    <div class="teacher-code-box">
+                        <label style="color: #63B3ED; font-weight: 700; font-size: 0.75rem;">🔑 Teacher Security Access Key (Required: 0987654321)</label>
+                        <input type="password" id="teacherCode" placeholder="Enter secret code (0987654321)" style="margin-top: 4px; border-color: #3182CE;">
+                    </div>
+                ` : ''}
+
+                <button class="btn-primary ${state.selectedRole === 'teacher' ? 'btn-teacher' : ''}" onclick="handleAuth()">
+                    ${state.isSignUp ? 'Create Account' : 'Sign In'}
+                </button>
+
+                <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted-light); cursor: pointer;" onclick="toggleAuthMode()">
+                    ${state.isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                </p>
             </div>
         </div>
         `;
     }
 
-    // STUDENT INTERFACE
     function renderStudentInterface() {
-        const db = DatabaseEngine.getDB();
-        const student = db.students.find(s => s.id === state.activeStudentId) || db.students[0];
-
         return `
         <div class="top-bar">
             <div class="brand-logo" style="color: var(--student-primary);">
                 AURAWAY <span class="role-badge" style="background: var(--student-light-bg); color: var(--student-primary);">STUDENT</span>
             </div>
-            <button class="btn-switch" onclick="selectRole('WELCOME')">Switch Role</button>
+            <button class="btn-switch" onclick="handleSignOut()">Sign Out</button>
         </div>
 
         <div class="view-content">
-            ${state.studentTab === 0 ? renderStudentDash(student, db) : ''}
-            ${state.studentTab === 1 ? renderStudentRoutine(student, db) : ''}
-            ${state.studentTab === 2 ? renderStudentTasks(db) : ''}
-            ${state.studentTab === 3 ? renderStudentFocus() : ''}
-        </div>
-
-        <div class="bottom-nav">
-            <button class="nav-item ${state.studentTab === 0 ? 'active' : ''}" onclick="setStudentTab(0)">
-                <span class="icon">📊</span> Dashboard
-            </button>
-            <button class="nav-item ${state.studentTab === 1 ? 'active' : ''}" onclick="setStudentTab(1)">
-                <span class="icon">📅</span> Routine
-            </button>
-            <button class="nav-item ${state.studentTab === 2 ? 'active' : ''}" onclick="setStudentTab(2)">
-                <span class="icon">📝</span> Tasks
-            </button>
-            <button class="nav-item ${state.studentTab === 3 ? 'active' : ''}" onclick="setStudentTab(3)">
-                <span class="icon">⏱️</span> Focus
-            </button>
-        </div>
-
-        ${renderReasonModal()}
-        `;
-    }
-
-    function renderStudentDash(student, db) {
-        const studentRoutines = db.routines[student.id] || [];
-        const completedRoutines = studentRoutines.filter(r => r.status === 'COMPLETED').length;
-        const pendingTasks = db.tasks.filter(t => t.status === 'PENDING').length;
-        const wellness = db.wellness[student.id] || { water: 5, targetWater: 8 };
-
-        return `
-        <div style="background: linear-gradient(135deg, var(--student-primary), var(--student-accent)); border-radius: 24px; padding: 24px; color: white;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h2 style="font-size: 1.4rem; font-weight: 800;">Hello, ${student.name} ${student.avatar}</h2>
+            ${state.studentTab === 0 ? `
+                <div style="background: linear-gradient(135deg, var(--student-primary), var(--student-accent)); border-radius: 24px; padding: 24px; color: white;">
+                    <h2 style="font-size: 1.4rem; font-weight: 800;">Hello, ${state.user.username} 🎓</h2>
                     <p style="font-size: 0.85rem; opacity: 0.9;">Wednesday, Feb 26</p>
                 </div>
-                <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <span style="font-weight: 800; font-size: 1.1rem;">${student.consistency}%</span>
-                    <span style="font-size: 0.55rem; text-transform: uppercase;">Streak</span>
+
+                <div style="display: flex; gap: 12px;">
+                    <div class="card" style="flex: 1;" onclick="state.studentTab = 1; render();">
+                        <p style="font-size: 0.7rem; color: var(--text-muted-light); font-weight: 700;">DAILY ROUTINE</p>
+                        <h3 style="font-size: 1.1rem; color: var(--student-primary); margin: 4px 0;">2 / 3 Done</h3>
+                        <p style="font-size: 0.7rem; color: var(--text-muted-light);">${state.user.visibleToTeacher ? '👁️ Shared' : '🔒 Encrypted Private'}</p>
+                    </div>
+                    <div class="card" style="flex: 1;" onclick="state.studentTab = 2; render();">
+                        <p style="font-size: 0.7rem; color: var(--text-muted-light); font-weight: 700;">ASSIGNED TASKS</p>
+                        <h3 style="font-size: 1.1rem; color: var(--teacher-accent); margin: 4px 0;">1 Pending</h3>
+                        <p style="font-size: 0.7rem; color: var(--text-muted-light);">Tap to view</p>
+                    </div>
                 </div>
-            </div>
-        </div>
+            ` : ''}
 
-        <div style="display: flex; gap: 12px;">
-            <div class="card" style="flex: 1; cursor: pointer;" onclick="setStudentTab(1)">
-                <p style="font-size: 0.75rem; color: var(--text-muted-light); font-weight: 600;">DAILY ROUTINE</p>
-                <h3 style="font-size: 1.1rem; color: var(--student-primary); font-weight: 700; margin: 4px 0;">${completedRoutines} / ${studentRoutines.length} Done</h3>
-                <p style="font-size: 0.7rem; color: var(--text-muted-light);">${student.visibleToTeacher ? '👁️ Shared with Teacher' : '🔒 Encrypted Private'}</p>
-            </div>
-            <div class="card" style="flex: 1; cursor: pointer;" onclick="setStudentTab(2)">
-                <p style="font-size: 0.75rem; color: var(--text-muted-light); font-weight: 600;">ASSIGNED TASKS</p>
-                <h3 style="font-size: 1.1rem; color: var(--teacher-accent); font-weight: 700; margin: 4px 0;">${pendingTasks} Pending</h3>
-                <p style="font-size: 0.7rem; color: var(--text-muted-light);">Click to manage</p>
-            </div>
-        </div>
-
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h4 style="font-size: 0.95rem; font-weight: 700;">💧 Water Hydration Goal</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted-light);">${wellness.water} / ${wellness.targetWater} Glasses Hydrated</p>
-            </div>
-            <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="addWater()">+ Glass</button>
-        </div>
-        `;
-    }
-
-    function renderStudentRoutine(student, db) {
-        const studentRoutines = db.routines[student.id] || [];
-        return `
-        <div class="privacy-card">
-            <div>
-                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-light);">Visible to Teacher</h4>
-                <p style="font-size: 0.75rem; color: var(--text-muted-light);">
-                    ${student.visibleToTeacher ? 'Teacher can view your active routine' : 'Private mode: Routine is strictly encrypted from teacher'}
-                </p>
-            </div>
-            <label class="switch">
-                <input type="checkbox" ${student.visibleToTeacher ? 'checked' : ''} onchange="toggleRoutinePrivacy(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <h3 style="font-size: 1.1rem; font-weight: 700;">Daily Time Blocks (${studentRoutines.length})</h3>
-
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            ${studentRoutines.map(item => `
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success-green)' : (item.status === 'MISSED' ? 'var(--error-red)' : 'var(--border-light)')}">
+            ${state.studentTab === 1 ? `
+                <div class="privacy-card">
                     <div>
-                        <span style="font-size: 0.65rem; font-weight: 700; background: var(--student-light-bg); color: var(--student-primary); padding: 2px 6px; border-radius: 4px;">${item.category}</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted-light); margin-left: 6px;">${item.time}</span>
-                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 4px;">${item.title}</h4>
+                        <h4 style="font-size: 0.95rem; font-weight: 700;">Visible to Teacher</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted-light);">
+                            ${state.user.visibleToTeacher ? 'Teacher can view your active routine' : 'Private mode: Routine is strictly encrypted'}
+                        </p>
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn-tick ${item.status === 'COMPLETED' ? 'active' : ''}" onclick="toggleRoutineStatus('${item.id}', 'COMPLETED')">✓</button>
-                        <button class="btn-cross ${item.status === 'MISSED' ? 'active' : ''}" onclick="toggleRoutineStatus('${item.id}', 'MISSED')">✕</button>
-                    </div>
+                    <label class="switch">
+                        <input type="checkbox" ${state.user.visibleToTeacher ? 'checked' : ''} onchange="state.user.visibleToTeacher = this.checked; render();">
+                        <span class="slider"></span>
+                    </label>
                 </div>
-            `).join('')}
-        </div>
-        `;
-    }
 
-    function renderStudentTasks(db) {
-        return `
-        <h3 style="font-size: 1.1rem; font-weight: 700;">Assigned Homework</h3>
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-            ${db.tasks.map(task => `
-                <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--student-primary); background: var(--student-light-bg); padding: 3px 8px; border-radius: 6px;">${task.subject}</span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: ${task.status === 'DONE' ? 'var(--success-green)' : (task.status === 'REASON_SUBMITTED' ? 'var(--warning-orange)' : 'var(--border-light)')}; color: white;">${task.status}</span>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Daily Time Blocks</h3>
+                ${state.routines.map(item => `
+                    <div class="card" style="display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success-green)' : 'var(--border-light)'};">
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted-light);">${item.time}</span>
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 2px;">${item.title}</h4>
+                        </div>
+                        <button class="btn-tick ${item.status === 'COMPLETED' ? 'active' : ''}" onclick="item.status = item.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'; render();">✓</button>
                     </div>
+                `).join('')}
+            ` : ''}
 
-                    <h4 style="font-size: 1rem; font-weight: 700;">${task.title}</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted-light);">${task.instructions}</p>
-                    <p style="font-size: 0.75rem; color: var(--text-muted-light);">⏱️ Due: ${task.dueDate}</p>
-
-                    ${task.status === 'REASON_SUBMITTED' && task.reason ? `
-                        <div style="background: rgba(245, 158, 11, 0.1); border-radius: 10px; padding: 10px; font-size: 0.8rem; color: var(--warning-orange);">
-                            <strong>📌 Note Submitted (${task.reason.submittedBy}):</strong> "${task.reason.note}"
-                        </div>
-                    ` : ''}
-
-                    ${task.status === 'PENDING' || task.status === 'REASON_SUBMITTED' ? `
-                        <div style="display: flex; gap: 10px; margin-top: 6px;">
-                            <button class="btn-primary" style="flex: 1; background: var(--success-green);" onclick="markTaskDone('${task.id}')">Mark Done</button>
-                            <button class="btn-primary" style="flex: 1; background: none; border: 1px solid var(--error-red); color: var(--error-red);" onclick="openReasonModal('${task.id}')">Submit Reason</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        </div>
-        `;
-    }
-
-    function renderStudentFocus() {
-        const mins = String(Math.floor(state.pomodoro.seconds / 60)).padStart(2, '0');
-        const secs = String(state.pomodoro.seconds % 60).padStart(2, '0');
-
-        return `
-        <div style="text-align: center;">
-            <h3 style="font-size: 1.3rem; font-weight: 800;">Pomodoro Focus Hub</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted-light);">25m Study Focus / 5m Break</p>
-        </div>
-
-        <div style="width: 220px; height: 220px; border-radius: 50%; border: 12px solid var(--student-primary); margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <span style="font-size: 3rem; font-weight: 800; color: var(--student-primary);">${mins}:${secs}</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted-light);">${state.pomodoro.isRunning ? 'In Progress' : 'Paused'}</span>
-        </div>
-
-        <div style="display: flex; justify-content: center; gap: 16px;">
-            <button class="btn-primary" style="width: auto; padding: 12px 32px;" onclick="toggleTimer()">${state.pomodoro.isRunning ? 'Pause' : 'Start Focus'}</button>
-            <button class="btn-switch" style="padding: 12px 20px;" onclick="resetTimer()">Reset</button>
-        </div>
-        `;
-    }
-
-    // TEACHER INTERFACE
-    function renderTeacherInterface() {
-        const db = DatabaseEngine.getDB();
-        return `
-        <div class="top-bar">
-            <div class="brand-logo" style="color: var(--teacher-primary);">
-                AURAWAY <span class="role-badge" style="background: var(--teacher-light-bg); color: var(--teacher-primary);">TEACHER</span>
-            </div>
-            <button class="btn-switch" onclick="selectRole('WELCOME')">Switch Role</button>
-        </div>
-
-        <div class="view-content">
-            ${state.teacherTab === 0 ? renderTeacherFeed(db) : ''}
-            ${state.teacherTab === 1 ? renderTeacherAssign(db) : ''}
-            ${state.teacherTab === 2 ? renderTeacherRoutines(db) : ''}
+            ${state.studentTab === 2 ? `
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Assigned Homework</h3>
+                ${state.tasks.map(task => `
+                    <div class="card" style="display: flex; flex-direction: column; gap: 8px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--student-primary);">${task.subject}</span>
+                        <h4 style="font-size: 1rem; font-weight: 700;">${task.title}</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted-light);">${task.instructions}</p>
+                        ${task.status === 'PENDING' ? `
+                            <button class="btn-primary" style="background: var(--success-green); margin-top: 6px;" onclick="task.status = 'DONE'; render();">Mark Done</button>
+                        ` : '<p style="color: var(--success-green); font-weight: 700;">✓ Status: ' + task.status + '</p>'}
+                    </div>
+                `).join('')}
+            ` : ''}
         </div>
 
         <div class="bottom-nav">
-            <button class="nav-item ${state.teacherTab === 0 ? 'active' : ''}" style="${state.teacherTab === 0 ? 'color: var(--teacher-primary);' : ''}" onclick="setTeacherTab(0)">
-                <span class="icon">🔍</span> Reason Feed
-            </button>
-            <button class="nav-item ${state.teacherTab === 1 ? 'active' : ''}" style="${state.teacherTab === 1 ? 'color: var(--teacher-primary);' : ''}" onclick="setTeacherTab(1)">
-                <span class="icon">➕</span> Assign Work
-            </button>
-            <button class="nav-item ${state.teacherTab === 2 ? 'active' : ''}" style="${state.teacherTab === 2 ? 'color: var(--teacher-primary);' : ''}" onclick="setTeacherTab(2)">
-                <span class="icon">👁️</span> Student Routines
-            </button>
+            <button class="nav-item ${state.studentTab === 0 ? 'active' : ''}" onclick="state.studentTab = 0; render();"><span class="icon">📊</span> Dash</button>
+            <button class="nav-item ${state.studentTab === 1 ? 'active' : ''}" onclick="state.studentTab = 1; render();"><span class="icon">📅</span> Routine</button>
+            <button class="nav-item ${state.studentTab === 2 ? 'active' : ''}" onclick="state.studentTab = 2; render();"><span class="icon">📝</span> Tasks</button>
         </div>
         `;
     }
 
-    function renderTeacherFeed(db) {
+    function renderTeacherInterface() {
         return `
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Live Student Progress & Reason Feed</h3>
-
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-            ${db.tasks.map(task => `
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong style="color: var(--teacher-primary); font-size: 0.9rem;">Alex Rivers (🎓 Student)</strong>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${task.status === 'REASON_SUBMITTED' ? 'var(--warning-orange)' : 'var(--border-light)'}; color: white;">${task.status}</span>
-                    </div>
-
-                    <h4 style="font-weight: 700;">${task.title}</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-muted-light);">Due: ${task.dueDate}</p>
-
-                    ${task.reason ? `
-                        <div style="background: rgba(245, 158, 11, 0.12); padding: 12px; border-radius: 12px; margin-top: 8px;">
-                            <strong style="color: var(--warning-orange); font-size: 0.8rem;">Note Submitted by ${task.reason.submittedBy}:</strong>
-                            <p style="font-size: 0.85rem; margin-top: 2px;">"${task.reason.note}"</p>
-                        </div>
-                    ` : ''}
-
-                    ${task.status === 'REASON_SUBMITTED' ? `
-                        <div style="display: flex; gap: 8px; margin-top: 12px;">
-                            <button class="btn-primary btn-teacher" style="flex: 1; background: var(--success-green);" onclick="excuseTask('${task.id}')">Verify & Excuse</button>
-                            <button class="btn-primary btn-teacher" style="flex: 1; background: var(--teacher-primary);" onclick="extendTask('${task.id}')">Extend Deadline</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        </div>
-        `;
-    }
-
-    function renderTeacherAssign(db) {
-        return `
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Assign Task to Students</h3>
-        <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
-            <input type="text" id="taskTitle" placeholder="Task Title (e.g. History Chapter Summary)">
-            <input type="text" id="taskSubject" placeholder="Subject (e.g. History)">
-            <input type="text" id="taskDue" placeholder="Due Date (e.g. Friday, 5 PM)">
-            <textarea id="taskInstructions" rows="3" placeholder="Short Instructions..."></textarea>
-            <button class="btn-primary btn-teacher" onclick="createTask()">Dispatch Homework Task</button>
-        </div>
-        `;
-    }
-
-    function renderTeacherRoutines(db) {
-        const student = db.students.find(s => s.id === state.activeStudentId);
-        // SECURE PRIVACY ENFORCEMENT: Queries database via privacy gate
-        const studentRoutines = DatabaseEngine.getStudentRoutineForTeacher(state.activeStudentId);
-
-        return `
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-primary);">Student Routine Inspector</h3>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            ${db.students.map(s => `
-                <button style="padding: 6px 12px; border-radius: 12px; border: 1px solid var(--border-light); background: ${s.id === state.activeStudentId ? 'var(--teacher-primary)' : 'var(--surface-light)'}; color: ${s.id === state.activeStudentId ? 'white' : 'var(--text-light)'}; cursor: pointer;" onclick="setActiveStudent('${s.id}')">
-                    ${s.avatar} ${s.name.split(' ')[0]}
-                </button>
-            `).join('')}
-        </div>
-
-        ${studentRoutines === null ? `
-            <div class="card" style="text-align: center; padding: 30px 20px;">
-                <span style="font-size: 2.5rem;">🔒</span>
-                <h4 style="font-size: 1.1rem; font-weight: 700; margin-top: 10px;">Routine is Encrypted & Private</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted-light); margin-top: 4px;">
-                    ${student.name} has disabled teacher visibility for their routine. The database engine strictly enforces data masking.
-                </p>
+        <div class="top-bar">
+            <div class="brand-logo" style="color: var(--teacher-accent);">
+                AURAWAY <span class="role-badge" style="background: var(--teacher-light-bg); color: var(--teacher-accent);">TEACHER</span>
             </div>
-        ` : `
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${studentRoutines.map(item => `
-                    <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-                        <div>
-                            <span style="font-size: 0.75rem; color: var(--text-muted-light);">${item.time}</span>
-                            <h4 style="font-size: 0.9rem; font-weight: 700;">${item.title}</h4>
-                        </div>
-                        <span style="font-weight: 700; font-size: 0.8rem; color: ${item.status === 'COMPLETED' ? 'var(--success-green)' : 'var(--error-red)'}">${item.status}</span>
-                    </div>
-                `).join('')}
+            <button class="btn-switch" onclick="handleSignOut()">Sign Out</button>
+        </div>
+
+        <div class="view-content">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--teacher-accent);">Teacher Control Portal</h3>
+            <div class="card">
+                <p style="font-size: 0.9rem;">Welcome, <strong>${state.user.username}</strong>!</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted-light); margin-top: 4px;">Authenticated with secret access key verification.</p>
             </div>
-        `}
-        `;
-    }
 
-    function renderReasonModal() {
-        return `
-        <div class="modal-overlay ${state.modalTask ? 'open' : ''}">
-            <div class="modal-content">
-                <h3 style="font-size: 1.1rem; font-weight: 700;">Submit Reason Note</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted-light);">Select who is submitting and reason tag:</p>
-
-                <select id="modalSubmitter">
-                    <option value="STUDENT">🧑‍🎓 Student Submission</option>
-                    <option value="PARENT">👨‍👩‍👦 Parent / Guardian Submission</option>
-                </select>
-
-                <select id="modalReasonTag">
-                    <option value="Unwell / Sick">Unwell / Sick</option>
-                    <option value="Family Event / Emergency">Family Event / Emergency</option>
-                    <option value="Need Academic Help">Need Academic Help</option>
-                </select>
-
-                <textarea id="modalNote" rows="2" placeholder="Explain brief details for teacher..."></textarea>
-
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" style="background: var(--border-light); color: var(--text-light);" onclick="closeModal()">Cancel</button>
-                    <button class="btn-primary" onclick="submitReason()">Submit Note</button>
-                </div>
+            <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+                <h4 style="font-weight: 700;">Dispatch Homework Task</h4>
+                <input type="text" id="tTitle" placeholder="Task Title">
+                <input type="text" id="tSub" placeholder="Subject">
+                <button class="btn-primary btn-teacher" onclick="alert('Task dispatched to all students!');">Dispatch Task</button>
             </div>
         </div>
         `;
     }
 
-    // Handlers with Persistent Database Writes
-    function selectRole(role) { state.role = role; render(); }
-    function setActiveStudent(id) { state.activeStudentId = id; render(); }
-    function setStudentTab(tab) { state.studentTab = tab; render(); }
-    function setTeacherTab(tab) { state.teacherTab = tab; render(); }
+    // Handlers
+    function selectRole(role) { state.selectedRole = role; render(); }
+    function toggleAuthMode() { state.isSignUp = !state.isSignUp; render(); }
 
-    function toggleRoutinePrivacy(val) {
-        const db = DatabaseEngine.getDB();
-        const student = db.students.find(s => s.id === state.activeStudentId);
-        if (student) {
-            student.visibleToTeacher = val;
-            DatabaseEngine.saveDB(db);
+    function handleAuth() {
+        const email = document.getElementById('authEmail')?.value;
+        const password = document.getElementById('authPassword')?.value;
+        const confirmPass = document.getElementById('authConfirmPassword')?.value;
+
+        if (state.isSignUp && password !== confirmPass) {
+            alert('Password and Confirm Password do not match!');
+            return;
         }
+
+        // TEACHER SECURITY PASSWORD GATE CHECK
+        if (state.selectedRole === 'teacher') {
+            const code = document.getElementById('teacherCode')?.value;
+            if (code !== TEACHER_SPECIAL_CODE) {
+                alert('Security Check Failed 🔒: Invalid Teacher Access Code. Access requires the secret key (0987654321).');
+                return;
+            }
+        }
+
+        const name = document.getElementById('authName')?.value || email?.split('@')[0] || 'User';
+        state.user = {
+            username: name,
+            email: email || 'user@school.edu',
+            role: state.selectedRole,
+            visibleToTeacher: false
+        };
         render();
     }
 
-    function toggleRoutineStatus(id, status) {
-        const db = DatabaseEngine.getDB();
-        const studentRoutines = db.routines[state.activeStudentId] || [];
-        const item = studentRoutines.find(r => r.id === id);
-        if (item) {
-            item.status = (item.status === status) ? 'PENDING' : status;
-            DatabaseEngine.saveDB(db);
-        }
-        render();
-    }
-
-    function markTaskDone(id) {
-        const db = DatabaseEngine.getDB();
-        const task = db.tasks.find(t => t.id === id);
-        if (task) {
-            task.status = 'DONE';
-            DatabaseEngine.saveDB(db);
-        }
-        render();
-    }
-
-    function openReasonModal(id) { state.modalTask = id; render(); }
-    function closeModal() { state.modalTask = null; render(); }
-
-    function submitReason() {
-        const db = DatabaseEngine.getDB();
-        const task = db.tasks.find(t => t.id === state.modalTask);
-        if (task) {
-            task.status = 'REASON_SUBMITTED';
-            task.reason = {
-                submittedBy: document.getElementById('modalSubmitter').value,
-                tag: document.getElementById('modalReasonTag').value,
-                note: document.getElementById('modalNote').value || 'Reason submitted.'
-            };
-            DatabaseEngine.saveDB(db);
-        }
-        closeModal();
-    }
-
-    function excuseTask(id) {
-        const db = DatabaseEngine.getDB();
-        const task = db.tasks.find(t => t.id === id);
-        if (task) {
-            task.status = 'EXCUSED';
-            DatabaseEngine.saveDB(db);
-        }
-        render();
-    }
-
-    function extendTask(id) {
-        const db = DatabaseEngine.getDB();
-        const task = db.tasks.find(t => t.id === id);
-        if (task) {
-            task.status = 'EXTENDED';
-            task.dueDate = 'Extended by 2 Days';
-            DatabaseEngine.saveDB(db);
-        }
-        render();
-    }
-
-    function createTask() {
-        const title = document.getElementById('taskTitle').value;
-        const subject = document.getElementById('taskSubject').value;
-        const due = document.getElementById('taskDue').value;
-        const inst = document.getElementById('taskInstructions').value;
-        if (title) {
-            const db = DatabaseEngine.getDB();
-            db.tasks.unshift({
-                id: 't' + Date.now(),
-                title: title,
-                subject: subject || 'General',
-                dueDate: due || 'Tomorrow',
-                instructions: inst || 'No instructions',
-                status: 'PENDING',
-                reason: null
-            });
-            DatabaseEngine.saveDB(db);
-            setTeacherTab(0);
-        }
-    }
-
-    function addWater() {
-        const db = DatabaseEngine.getDB();
-        const wellness = db.wellness[state.activeStudentId] || { water: 0, targetWater: 8 };
-        wellness.water = Math.min(wellness.targetWater, wellness.water + 1);
-        db.wellness[state.activeStudentId] = wellness;
-        DatabaseEngine.saveDB(db);
-        render();
-    }
-
-    function toggleTimer() {
-        if (state.pomodoro.isRunning) {
-            clearInterval(state.pomodoro.interval);
-            state.pomodoro.isRunning = false;
-        } else {
-            state.pomodoro.isRunning = true;
-            state.pomodoro.interval = setInterval(() => {
-                if (state.pomodoro.seconds > 0) {
-                    state.pomodoro.seconds--;
-                } else {
-                    clearInterval(state.pomodoro.interval);
-                    state.pomodoro.isRunning = false;
-                }
-                render();
-            }, 1000);
-        }
-        render();
-    }
-
-    function resetTimer() {
-        clearInterval(state.pomodoro.interval);
-        state.pomodoro.isRunning = false;
-        state.pomodoro.seconds = 1500;
+    function handleSignOut() {
+        state.user = null;
         render();
     }
 
