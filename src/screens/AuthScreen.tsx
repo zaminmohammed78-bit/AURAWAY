@@ -14,8 +14,6 @@ import {
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types/database';
 
-const TEACHER_SPECIAL_CODE = '0987654321';
-
 export const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [role, setRole] = useState<UserRole>('student');
@@ -24,7 +22,6 @@ export const AuthScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [teacherAccessCode, setTeacherAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async () => {
@@ -38,15 +35,13 @@ export const AuthScreen = () => {
       return;
     }
 
-    // Teacher Special Security Password Gate
-    if (role === 'teacher') {
-      if (teacherAccessCode.trim() !== TEACHER_SPECIAL_CODE) {
-        Alert.alert(
-          'Security Check Failed 🔒',
-          'Invalid Teacher Access Code. Access to Teacher Portal requires the secret access key (0987654321).'
-        );
-        return;
-      }
+    // Teacher accounts are provisioned by an administrator. Public sign-up is student-only.
+    if (isSignUp && role === 'teacher') {
+      Alert.alert(
+        'Teacher Account Required',
+        'Teacher accounts are created by an administrator. Please sign in with your existing teacher account.'
+      );
+      return;
     }
 
     setLoading(true);
@@ -60,7 +55,7 @@ export const AuthScreen = () => {
           options: {
             data: {
               username: username.trim() || email.split('@')[0],
-              role: role,
+              role: 'student',
             },
           },
         });
@@ -193,19 +188,10 @@ export const AuthScreen = () => {
             </View>
           )}
 
-          {/* Teacher Security Password Gate */}
-          {role === 'teacher' && (
-            <View style={[styles.inputGroup, styles.teacherCodeBox]}>
-              <Text style={styles.teacherCodeLabel}>🔑 Teacher Security Access Key (Required: 0987654321)</Text>
-              <TextInput
-                style={[styles.input, styles.teacherInput]}
-                placeholder="Enter secret access code (0987654321)"
-                placeholderTextColor="#A0AEC0"
-                value={teacherAccessCode}
-                onChangeText={setTeacherAccessCode}
-                secureTextEntry
-              />
-            </View>
+          {role === 'teacher' && isSignUp && (
+            <Text style={styles.teacherCodeLabel}>
+              Teacher accounts are created by an administrator. Switch to Sign In to access an existing account.
+            </Text>
           )}
 
           <TouchableOpacity
